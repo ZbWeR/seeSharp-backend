@@ -9,9 +9,10 @@ def generate_unique_id(name):
     """
     base_name = os.path.basename(name)
     _, ext = os.path.splitext(base_name)
-    unique_id = uuid.uuid4().hex
-    timestamp = time.strftime('%Y%m%d%H%M%S', time.localtime())
-    return f'{timestamp}_{unique_id}{ext}'
+    unique_id = uuid.uuid4()
+    short_id = str(unique_id).split('-')[0]
+    timestamp = time.strftime('%H%M%S', time.localtime())
+    return f'{timestamp}_{short_id}{ext}'
 
 
 def singleton(cls):
@@ -35,9 +36,9 @@ def allowed_file(filename):
     return filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def success(data, message="success", code=0):
-    return {"code": code, "message": message, "data": data}, 200
+def success(data, msg="success", code=0):
+    return {"code": code, "msg": msg, "data": data}, 200
 
 
-def fail(message="fail", code=-1):
-    return {"code": code, "message": message, "data": ""}, 200
+def fail(msg="fail", code=-1):
+    return {"code": code, "msg": msg, "data": ""}, 200

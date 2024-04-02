@@ -44,7 +44,7 @@ class FaceManager:
 
     def _extract_face_encoding(self, image_path):
         """
-        从给定的图片路径中提取人脸编码。
+        从给定的图片路径中提取人脸编码。如果图片中包含多张人脸，只提取第一张。
         """
         try:
             face_image = fc.load_image_file(image_path)
@@ -89,8 +89,11 @@ class FaceManager:
         unique_name = generate_unique_id("unknown")
         unknown_image_path = self._save_face(blob_data, unique_name)
         unknown_encoding = self._extract_face_encoding(unknown_image_path)
+        # 删除临时图片
+        if os.path.exists(unknown_image_path):
+            os.remove(unknown_image_path)
         # 查找匹配的已知人脸
-        if unknown_encoding:
+        if unknown_encoding is not None:
             matches = self._find_matches(unknown_encoding)
             if matches:
                 return matches
@@ -100,8 +103,7 @@ class FaceManager:
         """
         在已知人脸列表中查找与给定未知人脸编码相匹配的人脸。
         """
-        template = [unknown_encoding]
-        results = fc.compare_faces(self.known_faces["encodings"], template)
+        results = fc.compare_faces(self.known_faces["encodings"], unknown_encoding)
         matches = []
         for i, (match, name) in enumerate(zip(results, self.known_faces["names"])):
             if match:
