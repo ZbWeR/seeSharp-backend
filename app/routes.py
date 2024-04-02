@@ -2,7 +2,7 @@ from flask_restful import Resource, reqparse
 from flask_jwt_extended import create_access_token, jwt_required
 from flask import request
 
-from app.utils import allowed_file, fail, success
+from app.utils import check_uploaded_file, fail, success
 from .Face import FaceManager
 
 
@@ -34,14 +34,9 @@ class FaceAuth(Resource):
         return success(known_faces)
 
     def post(self):
-        if 'image' not in request.files:
-            return fail("No file part", -1)
-
-        file = request.files['image']
-        if file.filename == '':
-            return fail("No selected file", -1)
-        if not allowed_file(file.filename):
-            return fail("Invalid file type", -1)
+        legal, file = check_uploaded_file(request, 'image')
+        if not legal:
+            return fail(file, -1)
 
         file_name = file.filename
         file_blob = file.read()
@@ -56,14 +51,9 @@ class FaceAuth(Resource):
 class FaceVerify(Resource):
 
     def post(self):
-        if 'image' not in request.files:
-            return fail("No file part", -1)
-
-        file = request.files['image']
-        if file.filename == '':
-            return fail("No selected file", -1)
-        if not allowed_file(file.filename):
-            return fail("Invalid file type", -1)
+        legal, file = check_uploaded_file(request, 'image')
+        if not legal:
+            return fail(file, -1)
 
         file_blob = file.read()
         res = FaceManager().recognize_face(file_blob)

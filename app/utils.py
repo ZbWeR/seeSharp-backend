@@ -36,6 +36,17 @@ def allowed_file(filename):
     return filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def check_uploaded_file(request, key):
+    if key not in request.files:
+        return False, "No file part"
+    file = request.files[key]
+    if file.filename == '':
+        return False, "No selected file"
+    if not allowed_file(file.filename):
+        return False, "Invalid file type"
+    return True, file
+
+
 def success(data, msg="success", code=0):
     return {"code": code, "msg": msg, "data": data}, 200
 
