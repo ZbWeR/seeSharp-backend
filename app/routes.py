@@ -1,34 +1,30 @@
-from flask_restful import Resource, reqparse
-from flask_jwt_extended import create_access_token, jwt_required
-from flask import request
+from flask_restful import Resource
+from flask import current_app, request
+import requests
+import json
 
-from app.utils import check_uploaded_file, fail, success
+from app.utils import blob2base64, check_uploaded_file, fail, success
 from .Face import FaceManager
 
 
 class HelloWorld(Resource):
-
-    def __init__(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, location='args')
-        self.parser = parser
+    """
+    基础接口测试
+    """
 
     def get(self):
-        args = self.parser.parse_args()
-        name = args['name']
-        return success(f'Hello, {name}!')
+        return success("hello")
 
     def post(self):
         data = request.json
-        if 'name' not in data:
-            return fail("Name is required", -1)
-        access_token = create_access_token(identity=data['name'])
-        return success({"access_token": access_token, "name": data['name']})
+        return success(data)
 
 
-class FaceAuth(Resource):
+class FaceAuthController(Resource):
+    """
+    新增已知人脸信息
+    """
 
-    @jwt_required()
     def get(self):
         known_faces = FaceManager().get_known_faces()
         return success(known_faces)
@@ -49,6 +45,9 @@ class FaceAuth(Resource):
 
 
 class FaceVerify(Resource):
+    """
+    人脸识别
+    """
 
     def post(self):
         legal, file = check_uploaded_file(request, 'image')
@@ -60,3 +59,22 @@ class FaceVerify(Resource):
         if res:
             return success(res, "Face verified")
         return fail("Face not verified", -1)
+
+
+class ProductPrediction(Resource):
+
+    def __init__(self):
+        self.url = current_app.config['PRODUCT_RECOGNITION_URL']
+
+    def get(self):
+        return success("product prediction")
+
+    def post(self):
+        legal, file = check_uploaded_file(request, "image")
+        if not legal:
+            return fail(file, -1)
+
+        base64_string = blob2base64(file.read())
+        data = {"key": ["image"], "value": [base64_string]}
+        response = requests.post(self.url, data=json.dumps(data))
+        return success(response.json())

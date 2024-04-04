@@ -115,8 +115,3 @@ class FaceManager:
         返回已知人脸的名称列表。
         """
         return self.known_faces["names"]
-
-
-# Example usage:
-# face_manager = FaceManager("path/to/known/faces")
-# recognized_name = face_manager.recognize_face(blob_data)

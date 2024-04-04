@@ -1,6 +1,10 @@
+import base64
 import os
 import time
 import uuid
+
+import cv2
+import numpy as np
 
 
 def generate_unique_id(name):
@@ -45,6 +49,14 @@ def check_uploaded_file(request, key):
     if not allowed_file(file.filename):
         return False, "Invalid file type"
     return True, file
+
+
+def blob2base64(file_data):
+    blob = np.frombuffer(file_data, np.uint8)
+    image = cv2.imdecode(blob, cv2.IMREAD_COLOR)
+    _, buffer = cv2.imencode('.jpg', image)
+    base64_string = base64.b64encode(buffer).decode('utf-8')
+    return base64_string
 
 
 def success(data, msg="success", code=0):
