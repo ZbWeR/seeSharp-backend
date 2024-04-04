@@ -76,5 +76,22 @@ class ProductPrediction(Resource):
 
         base64_string = blob2base64(file.read())
         data = {"key": ["image"], "value": [base64_string]}
-        response = requests.post(self.url, data=json.dumps(data))
-        return success(response.json())
+        try:
+            response = requests.post(self.url, data=json.dumps(data))
+            response.raise_for_status()
+        except requests.RequestException as e:
+            return fail(str(e), -1)
+
+        try:
+            res_data = response.json()
+        except json.JSONDecodeError as e:
+            return fail(str(e), -1)
+
+        if 'value' in res_data and isinstance(res_data['value'], list) and len(
+                res_data['value']) > 0:
+            try:
+                label_values = json.loads(res_data['value'][0].replace("'", '"'))
+                return success(label_values)
+            except json.JSONDecodeError as e:
+                return fail(str(e), -1)
+        return fail("Unknown error", -1)
