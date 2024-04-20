@@ -32,6 +32,11 @@ class FaceManager:
         known_face_encodings = []
         known_face_names = []
         legal_file_types = (".jpg", ".jpeg", ".png")
+
+        # 目录不存在则创建
+        if not os.path.exists(self.known_faces_dir):
+            os.makedirs(self.known_faces_dir)
+
         for file in os.listdir(self.known_faces_dir):
             if file.lower().endswith(legal_file_types):
                 file_path = os.path.join(self.known_faces_dir, file)
